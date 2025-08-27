@@ -4,12 +4,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     button.addEventListener('click', () => {
         const item1 = document.getElementById('item1')
-        const aFazer = document.createElement('p')
+        const aFazer = document.createElement('div')
+        aFazer.id = 'aFazer'
+        const textAFazer = document.createElement('p')
         const newButton = document.createElement('button')
         newButton.textContent = '/'
-        aFazer.textContent = item1.value;
+        textAFazer.textContent = item1.value;
+        aFazer.appendChild(textAFazer)
+        aFazer.appendChild(newButton)
         campo.appendChild(aFazer)
-        campo.appendChild(newButton)
+
+        newButton.addEventListener('click', () => {
+
+        })
     })
-    
+
 })
