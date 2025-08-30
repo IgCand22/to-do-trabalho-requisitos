@@ -1,168 +1,112 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Referências principais
-    const botao = document.getElementById('button')
-    const campo = document.getElementById('campo')
-    const item  = document.getElementById('item')
-    let cont = 1
+:root{
+  /* fundo pastel */
+  --bg:#f0fdfd; 
+  --glass:rgba(255,255,255,.6); 
+  --text:#1c1c1c; 
+  --muted:#5f7c7c;
 
-    // Referências para mostrar estatísticas
-    const totalEl = document.getElementById('total')
-    const concluidasEl  = document.getElementById('done')
-    const progressoEl  = document.getElementById('progress')
-    const restantesEl  = document.getElementById('left')
+  --c1:linear-gradient(180deg,#a8dadc,#459dd3); 
+  --c2:linear-gradient(180deg,#bde4d4,#40aa7a); 
+  --c3:linear-gradient(180deg,#d4f8e8,#52b788); 
 
-    // Limite de tarefas
-    const LIMITE = 10
-    const CHAVE_ARMAZENAMENTO = 'todos_coloridos'
+  --b1:linear-gradient(90deg,#8ecae6,#219ebc); 
+  --b2:linear-gradient(90deg,#b7e4c7,#52b788); 
+  --b3:linear-gradient(90deg,#caffbf,#80ed99); 
+  --b4:linear-gradient(90deg,#ade8f4,#48cae4); 
 
+  --shadow-lg:0 20px 50px rgba(0,0,0,.12);
+  --shadow-md:0 10px 30px rgba(0,0,0,.10);
+  --shadow-sm:0 6px 18px rgba(0,0,0,.08);
+  --r-xl:22px; 
+  --r-lg:18px;
+}
 
-    const carregar = () => JSON.parse(localStorage.getItem(CHAVE_ARMAZENAMENTO) || '[]')
-    const salvar = (arr) => localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(arr))
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; 
+  font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; 
+  color:var(--text);
+  background:
+    radial-gradient(1200px 600px at 10% 0%, #dff9fb 0%, transparent 60%),
+    radial-gradient(1000px 500px at 100% 20%, #e0f7fa 0%, transparent 60%),
+    radial-gradient(1000px 600px at 30% 100%, #eafaf1 0%, transparent 60%),
+    var(--bg);
+}
 
-    //Monta a lista inicial
-    carregar().forEach(tarefa => {
-        criarTarefa(tarefa.texto, tarefa.concluida, false)
-    })
-    atualizarEstatisticas()
+.wrap{max-width:880px; margin:48px auto 80px; padding:0 20px}
+.title{
+  text-align:center; font-size:clamp(28px,3.6vw,44px); margin:0 0 6px; font-weight:800;
+  background:linear-gradient(90deg,#48cae4,#52b788,#40916c);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.subtitle{text-align:center; margin:0 0 28px; color:var(--muted); font-weight:500}
 
-    // Pressionar Enter adiciona tarefa
-    item.addEventListener('keydown', (evento) => {
-        if (evento.key === 'Enter') {
-            botao.click();
-        }
-    })
+/* stats */
+.stats{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin-bottom:18px}
+.stat{border-radius:var(--r-xl); box-shadow:var(--shadow-lg); padding:20px 18px; color:#fff; position:relative; overflow:hidden; min-height:110px}
+.stat h3{margin:0 0 6px; font-weight:700; font-size:18px}
+.stat p{margin:0; font-size:36px; font-weight:900}
+.stat small{position:absolute; right:16px; bottom:16px; opacity:.9}
+.stat.s1{background:var(--c1)} 
+.stat.s2{background:var(--c2)} 
+.stat.s3{background:var(--c3)}
 
-    // Clique no botão adiciona tarefa
-    botao.addEventListener('click', () => {
-        if(item.value.trim() === "") return;   // não deixa adicionar vazio
-        if (campo.querySelectorAll('.todo').length >= LIMITE) return; // não passa do limite
+/* input */
+.input-card{margin:12px 0 22px; padding:12px; background:var(--glass); backdrop-filter:blur(8px); border-radius:var(--r-xl); box-shadow:var(--shadow-lg); position:relative}
+.input-inner{display:flex; gap:10px; align-items:center; background:#fff; border-radius:999px; padding:10px; box-shadow:inset 0 0 0 2px rgba(0,0,0,.04)}
+.input-inner input{flex:1; border:0; outline:0; padding:10px 12px; border-radius:inherit; font-size:16px}
+.add-btn{border:0; cursor:pointer; padding:10px 16px; border-radius:999px; font-weight:700; background:linear-gradient(90deg,#219ebc,#52b788); color:#fff; box-shadow:var(--shadow-sm)}
+.input-card::after{content:""; position:absolute; inset:-3px; border-radius:inherit; background:var(--b4); filter:blur(6px); z-index:-1}
 
-        criarTarefa(item.value.trim(), false, true)
-        item.value = "";   // limpa input
-        item.focus();      // volta o foco pro campo
-    })
+/* lista */
+.list{display:flex; flex-direction:column; gap:16px}
+.todo{position:relative; border-radius:var(--r-lg); padding:14px; background:#fff; box-shadow:var(--shadow-md); display:flex; align-items:center; gap:12px}
+.todo::before{content:""; position:absolute; inset:-3px; border-radius:inherit; background:var(--b1); filter:blur(6px); opacity:.7; z-index:-1}
+.todo.green::before{background:var(--b2)} 
+.todo.orange::before{background:var(--b3)}
+.check{appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:999px;border:2px solid #cfd3d9;cursor:pointer;display:grid;place-items:center;flex:0 0 22px}
+.check:checked{background:#52b788;border-color:#52b788}
+.check:checked::after{content:"✓";color:#fff;font-size:14px;transform:translateY(-1px)}
+.todo-text{flex:1;font-size:16px}
+.todo.done .todo-text{text-decoration:line-through;color:#7bbf8d}
+.del{border:0;background:transparent;cursor:pointer;font-weight:900;color:#e63946;font-size:18px;width:34px;height:34px;border-radius:10px;display:grid;place-items:center}
+.del:hover{background:#ffe9e8}
 
-    //Função que cria uma nova tarefa
-    function criarTarefa(texto, concluida, salvarNoStorage){
-        const aFazer = document.createElement('div')
-        aFazer.id = `aFazer${cont}`
-        aFazer.className = 'todo' + (cont % 3 === 2 ? ' green' : cont % 3 === 0 ? ' orange' : '')
+/* botão de editar */
+.edit {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  transition: background .2s;
+}
+.edit::before {
+  content: "✏️";
+}
+.edit:hover {
+  background: #e0f7fa;
+}
 
-        const textAFazer = document.createElement('p')
-        textAFazer.id = `text${cont}`
-        textAFazer.className = 'todo-text'
-        textAFazer.textContent = texto
+/* campo de edição */
+.edit-input {
+  flex: 1;
+  font-size: 16px;
+  border: 2px solid #52b788;
+  border-radius: var(--r-lg);
+  padding: 6px 10px;
+  outline: none;
+  box-shadow: inset 0 0 4px rgba(0,0,0,.08);
+}
+.edit-input:focus {
+  border-color: #219ebc;
+}
 
-        const checkbox = document.createElement('input')
-        checkbox.type = 'checkbox'
-        checkbox.id = `button${cont}`
-        checkbox.className = 'check'
-        checkbox.checked = concluida
-
-        const btExcluir = document.createElement('button')
-        btExcluir.id = `btExcluir${cont}`
-        btExcluir.textContent = 'X'
-        btExcluir.className = 'del'
-
-        // Botão de editar
-        const btEditar = document.createElement('button')
-        btEditar.id = `btEditar${cont}`
-        //btEditar.textContent = '?' MEXI SÓ PRA DEIXAR O LÁPIS
-        btEditar.className = 'edit'
-        
-
-        // monta a div
-        aFazer.appendChild(textAFazer)
-        aFazer.appendChild(checkbox)
-        aFazer.appendChild(btExcluir)
-        aFazer.appendChild(btEditar) 
-        campo.appendChild(aFazer)
-
-        // se já vem concluída
-        if (concluida){
-            aFazer.classList.add('done')
-            textAFazer.style.color = '#7bbf8d'
-        }
-
-        cont++;
-
-        // marcar como concluída
-        checkbox.addEventListener('change', () => {
-            if (checkbox.checked) {
-                textAFazer.style.color = '#7bbf8d'
-                aFazer.classList.add('done')
-            } else {
-                textAFazer.style.color = '#000000'
-                aFazer.classList.remove('done')
-            }
-            sincronizar()
-        })
-
-        // excluir tarefa
-        btExcluir.addEventListener('click', () => {
-            aFazer.remove()
-            sincronizar()
-        })
-
-        // lógica de editar 
-        btEditar.addEventListener('click', () => {
-            
-            const input = document.createElement('input')
-            input.type = 'text'
-            input.value = textAFazer.textContent
-            input.className = 'edit-input'
-
-            // salvar edição ao perder foco
-            input.addEventListener('blur', () => {
-                const novoTexto = input.value.trim()
-                textAFazer.textContent = novoTexto || textAFazer.textContent
-                input.parentNode.replaceChild(textAFazer, input)
-                sincronizar()
-            })
-
-            // salvar com Enter / cancelar com Esc
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    input.blur()
-                } else if (e.key === 'Escape') {
-                    input.parentNode.replaceChild(textAFazer, input)
-                }
-            })
-
-            textAFazer.parentNode.replaceChild(input, textAFazer)
-            input.focus()
-            input.select()
-        })
-        // -------------------------------------------
-
-        if (salvarNoStorage) sincronizar(); 
-        else atualizarEstatisticas();
-    }
-
-    //Sincroniza lista com o localStorage
-    function sincronizar(){
-        const lista = Array.from(campo.querySelectorAll('.todo')).map(el => ({
-            texto: el.querySelector('.todo-text').textContent,
-            concluida: el.classList.contains('done')
-        }))
-        salvar(lista)
-        atualizarEstatisticas()
-    }
-
-    //Atualiza estatística
-    function atualizarEstatisticas(){
-        const total = campo.querySelectorAll('.todo').length
-        const concluidas  = campo.querySelectorAll('.todo.done').length
-        const restantes  = Math.max(total - concluidas, 0)
-        const progresso  = total ? Math.round(concluidas/total*100) : 0
-
-        if (totalEl) totalEl.textContent = total
-        if (concluidasEl)  concluidasEl.textContent  = concluidas
-        if (progressoEl)  progressoEl.textContent  = progresso + '%'
-        if (restantesEl)  restantesEl.textContent  = restantes
-
-        // desabilita botão se chegou no limite
-        botao.disabled = total >= LIMITE
-        botao.style.filter = botao.disabled ? 'grayscale(1) brightness(.9)' : ''
-    }
-})
+.hint{margin:18px auto 0; max-width:420px; text-align:center; background:#fff; padding:14px 18px; border-radius:16px; box-shadow:var(--shadow-sm); color:var(--muted)}
+.hint b{color:#40916c}
+@media (max-width:720px){.stats{grid-template-columns:1fr}}
