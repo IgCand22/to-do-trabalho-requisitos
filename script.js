@@ -64,10 +64,18 @@ document.addEventListener('DOMContentLoaded', () => {
         btExcluir.textContent = 'X'
         btExcluir.className = 'del'
 
+        // Botão de editar
+        const btEditar = document.createElement('button')
+        btEditar.id = `btEditar${cont}`
+        //btEditar.textContent = '?' MEXI SÓ PRA DEIXAR O LÁPIS
+        btEditar.className = 'edit'
+        
+
         // monta a div
         aFazer.appendChild(textAFazer)
         aFazer.appendChild(checkbox)
         aFazer.appendChild(btExcluir)
+        aFazer.appendChild(btEditar) 
         campo.appendChild(aFazer)
 
         // se já vem concluída
@@ -95,6 +103,37 @@ document.addEventListener('DOMContentLoaded', () => {
             aFazer.remove()
             sincronizar()
         })
+
+        // lógica de editar 
+        btEditar.addEventListener('click', () => {
+            
+            const input = document.createElement('input')
+            input.type = 'text'
+            input.value = textAFazer.textContent
+            input.className = 'edit-input'
+
+            // salvar edição ao perder foco
+            input.addEventListener('blur', () => {
+                const novoTexto = input.value.trim()
+                textAFazer.textContent = novoTexto || textAFazer.textContent
+                input.parentNode.replaceChild(textAFazer, input)
+                sincronizar()
+            })
+
+            // salvar com Enter / cancelar com Esc
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    input.blur()
+                } else if (e.key === 'Escape') {
+                    input.parentNode.replaceChild(textAFazer, input)
+                }
+            })
+
+            textAFazer.parentNode.replaceChild(input, textAFazer)
+            input.focus()
+            input.select()
+        })
+        // -------------------------------------------
 
         if (salvarNoStorage) sincronizar(); 
         else atualizarEstatisticas();
