@@ -1,19 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To Do</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>To Do</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div>
-        <label for="item1">A fazer</label>
-        <input type="text" placeholder="Item #" id="item">
-        <button id="button">+</button>
-    </div>
+  <div class="wrap">
+    <h1 class="title">✨Todo List</h1>
+    <!-- <p class="subtitle">Se mantenha organizado!</p> -->
 
-    <div id="campo"></div>
+    <!-- ids de detalhe -->
+    <section class="stats" aria-label="Estatísticas">
+      <div class="stat s1"><h3>Total de tarefas</h3><p id="total">0</p><small>todos os itens</small></div>
+      <div class="stat s2"><h3>Concluídas</h3><p id="done">0</p><small>Bom trabalho!</small></div>
+      <div class="stat s3"><h3>Progresso</h3><p id="progress">0%</p><small>se mantenha firme!</small></div>
+    </section>
 
-    <script src="./script.js"></script>
+    <section class="input-card">
+      <div class="input-inner">
+        <input id="item" type="text" placeholder="Que tarefas você tem para hoje? ✨" maxlength="80" />
+        <button id="button" class="add-btn" aria-label="Adicionar tarefa">+ Add Task</button>
+      </div>
+    </section>
+
+    <div id="campo" class="list" aria-live="polite" aria-label="Lista de tarefas"></div>
+
+    <div class="hint">Continue firme! <b><span id="left">0</span> restam apenas</b> tarefas 💪</div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
