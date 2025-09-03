@@ -15,34 +15,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const LIMITE = 10
     const CHAVE_ARMAZENAMENTO = 'todos_coloridos'
 
+    // ---------- TOAST DE AVISO ----------
+    function avisarLimite(msg = 'Limite de 10 tarefas atingido. Conclua ou apague alguma para adicionar mais.') {
+        let toast = document.getElementById('aviso-limite')
+        if (!toast) {
+            toast = document.createElement('div')
+            toast.id = 'aviso-limite'
+            toast.setAttribute('role', 'status')
+            toast.style.position = 'fixed'
+            toast.style.left = '50%'
+            toast.style.bottom = '16px'
+            toast.style.transform = 'translateX(-50%) translateY(16px)'
+            toast.style.maxWidth = '520px'
+            toast.style.padding = '12px 14px'
+            toast.style.borderRadius = '12px'
+            toast.style.background = 'rgba(0,0,0,.85)'
+            toast.style.color = '#fff'
+            toast.style.font = '600 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+            toast.style.boxShadow = '0 10px 30px rgba(0,0,0,.35)'
+            toast.style.zIndex = '9999'
+            toast.style.opacity = '0'
+            toast.style.transition = 'opacity .18s ease, transform .18s ease'
+            document.body.appendChild(toast)
+        }
+        toast.textContent = `⚠️ ${msg}`
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1'
+            toast.style.transform = 'translateX(-50%) translateY(0)'
+        })
+        clearTimeout(avisarLimite._t)
+        avisarLimite._t = setTimeout(() => {
+            toast.style.opacity = '0'
+            toast.style.transform = 'translateX(-50%) translateY(16px)'
+        }, 2200)
+
+        // feedbackzinho no botão
+        try {
+            botao.animate(
+                [{transform:'scale(1)'},{transform:'scale(.97)'},{transform:'scale(1)'}],
+                {duration:180, easing:'ease'}
+            )
+        } catch {}
+    }
+    // ------------------------------------
 
     const carregar = () => JSON.parse(localStorage.getItem(CHAVE_ARMAZENAMENTO) || '[]')
     const salvar = (arr) => localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(arr))
 
-    //Monta a lista inicial
+    // Monta a lista inicial
     carregar().forEach(tarefa => {
         criarTarefa(tarefa.texto, tarefa.concluida, false)
     })
     atualizarEstatisticas()
 
-    // Pressionar Enter adiciona tarefa
+    // Pressionar Enter adiciona tarefa (aciona o clique do botão)
     item.addEventListener('keydown', (evento) => {
         if (evento.key === 'Enter') {
-            botao.click();
+            botao.click()
         }
     })
 
     // Clique no botão adiciona tarefa
     botao.addEventListener('click', () => {
-        if(item.value.trim() === "") return;   // não deixa adicionar vazio
-        if (campo.querySelectorAll('.todo').length >= LIMITE) return; // não passa do limite
+        const texto = item.value.trim()
+        if (texto === "") return
 
-        criarTarefa(item.value.trim(), false, true)
-        item.value = "";   // limpa input
-        item.focus();      // volta o foco pro campo
+        const totalAtual = campo.querySelectorAll('.todo').length
+        if (totalAtual >= LIMITE) {
+            // não cria a 11ª, mas mostra aviso
+            avisarLimite()
+            item.focus()
+            return
+        }
+
+        criarTarefa(texto, false, true)
+        item.value = ""
+        item.focus()
     })
 
-    //Função que cria uma nova tarefa
+    // Função que cria uma nova tarefa
     function criarTarefa(texto, concluida, salvarNoStorage){
         const aFazer = document.createElement('div')
         aFazer.id = `aFazer${cont}`
@@ -64,18 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
         btExcluir.textContent = 'X'
         btExcluir.className = 'del'
 
-        // Botão de editar
+        // Botão de editar (ícone de lápis via CSS/::before ou background)
         const btEditar = document.createElement('button')
         btEditar.id = `btEditar${cont}`
-        //btEditar.textContent = '?' MEXI SÓ PRA DEIXAR O LÁPIS
         btEditar.className = 'edit'
-        
 
         // monta a div
         aFazer.appendChild(textAFazer)
         aFazer.appendChild(checkbox)
         aFazer.appendChild(btExcluir)
-        aFazer.appendChild(btEditar) 
+        aFazer.appendChild(btEditar)
         campo.appendChild(aFazer)
 
         // se já vem concluída
@@ -104,9 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
             sincronizar()
         })
 
-        // lógica de editar 
+        // lógica de editar
         btEditar.addEventListener('click', () => {
-            
             const input = document.createElement('input')
             input.type = 'text'
             input.value = textAFazer.textContent
@@ -133,13 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
             input.focus()
             input.select()
         })
-        // -------------------------------------------
 
-        if (salvarNoStorage) sincronizar(); 
-        else atualizarEstatisticas();
+        if (salvarNoStorage) sincronizar()
+        else atualizarEstatisticas()
     }
 
-    //Sincroniza lista com o localStorage
+    // Sincroniza lista com o localStorage
     function sincronizar(){
         const lista = Array.from(campo.querySelectorAll('.todo')).map(el => ({
             texto: el.querySelector('.todo-text').textContent,
@@ -149,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         atualizarEstatisticas()
     }
 
-    //Atualiza estatística
+    // Atualiza estatísticas + feedback visual no botão (sem desabilitar)
     function atualizarEstatisticas(){
         const total = campo.querySelectorAll('.todo').length
         const concluidas  = campo.querySelectorAll('.todo.done').length
@@ -161,8 +208,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (progressoEl)  progressoEl.textContent  = progresso + '%'
         if (restantesEl)  restantesEl.textContent  = restantes
 
-        // desabilita botão se chegou no limite
-        botao.disabled = total >= LIMITE
-        botao.style.filter = botao.disabled ? 'grayscale(1) brightness(.9)' : ''
+        const passouLimite = total >= LIMITE
+        botao.style.filter = passouLimite ? 'grayscale(1) brightness(.9)' : ''
+        botao.style.cursor = passouLimite ? 'not-allowed' : ''
+        botao.setAttribute('aria-disabled', String(passouLimite))
+        botao.title = passouLimite ? 'Limite de 10 tarefas — conclua ou apague para adicionar mais.' : ''
     }
 })
