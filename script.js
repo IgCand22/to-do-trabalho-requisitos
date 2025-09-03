@@ -1,27 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Referências principais
     const botao = document.getElementById('button')
     const campo = document.getElementById('campo')
     const item  = document.getElementById('item')
     let cont = 1
 
-    // Referências para mostrar estatísticas
     const totalEl = document.getElementById('total')
     const concluidasEl  = document.getElementById('done')
     const progressoEl  = document.getElementById('progress')
     const restantesEl  = document.getElementById('left')
 
-    // Limite de tarefas
     const LIMITE = 10
     const CHAVE_ARMAZENAMENTO = 'todos_coloridos'
 
     // ---------- TOAST DE AVISO ----------
-    function avisarLimite(msg = 'Limite de 10 tarefas atingido. Conclua ou apague alguma para adicionar mais.') {
-        let toast = document.getElementById('aviso-limite')
+    function avisar(msg) {
+        let toast = document.getElementById('aviso-toast')
         if (!toast) {
             toast = document.createElement('div')
-            toast.id = 'aviso-limite'
-            toast.setAttribute('role', 'status')
+            toast.id = 'aviso-toast'
             toast.style.position = 'fixed'
             toast.style.left = '50%'
             toast.style.bottom = '16px'
@@ -43,13 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.style.opacity = '1'
             toast.style.transform = 'translateX(-50%) translateY(0)'
         })
-        clearTimeout(avisarLimite._t)
-        avisarLimite._t = setTimeout(() => {
+        clearTimeout(avisar._t)
+        avisar._t = setTimeout(() => {
             toast.style.opacity = '0'
             toast.style.transform = 'translateX(-50%) translateY(16px)'
         }, 2200)
 
-        // feedbackzinho no botão
         try {
             botao.animate(
                 [{transform:'scale(1)'},{transform:'scale(.97)'},{transform:'scale(1)'}],
@@ -62,28 +57,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const carregar = () => JSON.parse(localStorage.getItem(CHAVE_ARMAZENAMENTO) || '[]')
     const salvar = (arr) => localStorage.setItem(CHAVE_ARMAZENAMENTO, JSON.stringify(arr))
 
-    // Monta a lista inicial
     carregar().forEach(tarefa => {
         criarTarefa(tarefa.texto, tarefa.concluida, false)
     })
     atualizarEstatisticas()
 
-    // Pressionar Enter adiciona tarefa (aciona o clique do botão)
     item.addEventListener('keydown', (evento) => {
-        if (evento.key === 'Enter') {
-            botao.click()
-        }
+        if (evento.key === 'Enter') botao.click()
     })
 
-    // Clique no botão adiciona tarefa
     botao.addEventListener('click', () => {
         const texto = item.value.trim()
-        if (texto === "") return
+
+        if (texto === "") {
+            avisar("Digite uma tarefa antes de adicionar.")
+            item.focus()
+            return
+        }
 
         const totalAtual = campo.querySelectorAll('.todo').length
         if (totalAtual >= LIMITE) {
-            // não cria a 11ª, mas mostra aviso
-            avisarLimite()
+            avisar("Limite de 10 tarefas atingido. Conclua ou apague alguma para adicionar mais.")
             item.focus()
             return
         }
@@ -93,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
         item.focus()
     })
 
-    // Função que cria uma nova tarefa
     function criarTarefa(texto, concluida, salvarNoStorage){
         const aFazer = document.createElement('div')
         aFazer.id = `aFazer${cont}`
@@ -115,19 +108,16 @@ document.addEventListener('DOMContentLoaded', () => {
         btExcluir.textContent = 'X'
         btExcluir.className = 'del'
 
-        // Botão de editar (ícone de lápis via CSS/::before ou background)
         const btEditar = document.createElement('button')
         btEditar.id = `btEditar${cont}`
         btEditar.className = 'edit'
 
-        // monta a div
         aFazer.appendChild(textAFazer)
         aFazer.appendChild(checkbox)
         aFazer.appendChild(btExcluir)
         aFazer.appendChild(btEditar)
         campo.appendChild(aFazer)
 
-        // se já vem concluída
         if (concluida){
             aFazer.classList.add('done')
             textAFazer.style.color = '#7bbf8d'
@@ -135,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cont++;
 
-        // marcar como concluída
         checkbox.addEventListener('change', () => {
             if (checkbox.checked) {
                 textAFazer.style.color = '#7bbf8d'
@@ -147,20 +136,17 @@ document.addEventListener('DOMContentLoaded', () => {
             sincronizar()
         })
 
-        // excluir tarefa
         btExcluir.addEventListener('click', () => {
             aFazer.remove()
             sincronizar()
         })
 
-        // lógica de editar
         btEditar.addEventListener('click', () => {
             const input = document.createElement('input')
             input.type = 'text'
             input.value = textAFazer.textContent
             input.className = 'edit-input'
 
-            // salvar edição ao perder foco
             input.addEventListener('blur', () => {
                 const novoTexto = input.value.trim()
                 textAFazer.textContent = novoTexto || textAFazer.textContent
@@ -168,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 sincronizar()
             })
 
-            // salvar com Enter / cancelar com Esc
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     input.blur()
@@ -186,7 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
         else atualizarEstatisticas()
     }
 
-    // Sincroniza lista com o localStorage
     function sincronizar(){
         const lista = Array.from(campo.querySelectorAll('.todo')).map(el => ({
             texto: el.querySelector('.todo-text').textContent,
@@ -196,7 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
         atualizarEstatisticas()
     }
 
-    // Atualiza estatísticas + feedback visual no botão (sem desabilitar)
     function atualizarEstatisticas(){
         const total = campo.querySelectorAll('.todo').length
         const concluidas  = campo.querySelectorAll('.todo.done').length
